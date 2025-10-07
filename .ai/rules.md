@@ -118,6 +118,134 @@ Before merging `dev` to `main`, ensure:
 - ❌ Don't remove or modify existing tests without approval
 - ❌ Don't commit to `main` directly - always use `dev`
 
+## Multi-Tenancy Requirements
+This application implements user-level multi-tenancy where each user only has access to their own data.
+
+### Core Implementation
+- **BelongsToUser Trait**: All user-scoped models MUST use `App\Models\Traits\BelongsToUser` trait
+- **user_id Column**: All tenant-scoped tables MUST have a `user_id` foreign key column
+- **Automatic Assignment**: The trait automatically assigns `user_id` on model creation when user is authenticated
+- **Global Scope**: The trait applies a global scope that filters ALL queries to return only current user's records
+- **user() Relationship**: All tenant-scoped models MUST define a `user()` BelongsTo relationship
+
+### Models Requiring Multi-Tenancy
+Apply BelongsToUser trait to models that store user-specific data:
+- Assets, Chains, Resources, Strategies, Snapshots, Transactions, etc.
+- Any model that represents user-owned data
+
+### Implementation Pattern
+```php
+use App\Models\Traits\BelongsToUser;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class YourModel extends Model
+{
+    use BelongsToUser;
+    
+    protected $fillable = [
+        'user_id',
+        // other fields...
+    ];
+    
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+}
+```
+
+### Migration Requirements
+- Always include `user_id` foreign key in migrations for tenant-scoped tables
+- Add proper foreign key constraints: `$table->foreignId('user_id')->constrained()->cascadeOnDelete();`
+- Index the `user_id` column for query performance
+
+### Testing Multi-Tenancy
+- **Always test data isolation**: Verify users cannot access other users' data
+- **Test automatic assignment**: Ensure `user_id` is set automatically on creation
+- **Test global scope**: Verify queries only return current user's records
+- Use the pattern from `tests/Feature/Traits/BelongsToUserTest.php` as reference
+
+### Media Library & Storage
+- Media files use user-specific paths: `storage/app/private/users/{user_id}/`
+- This provides additional data isolation at the file system level
+- Configure media collections with `useDisk('local')` for private storage
+
+### Important Notes
+- **Never bypass the trait**: Don't use `DB::table()` for tenant-scoped models, always use Eloquent
+- **Testing caveat**: When using `DB::table()` in tests to create other users' data, the global scope won't apply
+- **Authentication required**: The global scope only applies when a user is authenticated (`Auth::check()`)
+- **Existing user_id**: If `user_id` is already set during creation, the trait won't override it
+
+## Model Relationship Requirements
+When creating or editing a model, you MUST verify that all necessary relationships with other models are properly defined.
+
+### Relationship Verification Checklist
+Before finalizing any model creation or modification:
+1. **Identify related entities**: Determine which other models this model should be connected to based on business logic
+2. **Define all relationships**: Add relationship methods for each connection (BelongsTo, HasMany, BelongsToMany, etc.)
+3. **Use proper type hints**: Always include return type declarations on relationship methods
+4. **Check both sides**: Ensure relationships are defined on BOTH models (e.g., if Asset belongsTo Chain, then Chain hasMany Assets)
+5. **Review existing models**: Check similar models in the project to ensure consistency in relationship patterns
+
+### Common Relationship Patterns in This Project
+- **User relationships**: Most models belong to a User (via BelongsToUser trait + user() method)
+- **Chain → Assets**: Chain hasMany Assets; Asset belongsTo Chain
+- **Resource → Strategies**: Resource hasMany Strategies; Strategy belongsTo Resource
+- **Strategy relationships**: Strategy connects to Resource, Chain, Wallet, Assets, Transactions, Snapshots, etc.
+- **Pivot relationships**: Many-to-many relationships use pivot tables (e.g., asset_strategy, asset_snapshot, asset_transaction)
+
+### Example: Complete Model with All Relationships
+```php
+use App\Models\Traits\BelongsToUser;
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany, BelongsToMany};
+
+class Asset extends Model
+{
+    use BelongsToUser;
+    
+    // Multi-tenancy relationship
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+    
+    // Parent relationship
+    public function chain(): BelongsTo
+    {
+        return $this->belongsTo(Chain::class);
+    }
+    
+    // Many-to-many relationships
+    public function strategies(): BelongsToMany
+    {
+        return $this->belongsToMany(Strategy::class, 'asset_strategy');
+    }
+    
+    public function snapshots(): BelongsToMany
+    {
+        return $this->belongsToMany(Snapshot::class, 'asset_snapshot');
+    }
+    
+    public function transactions(): BelongsToMany
+    {
+        return $this->belongsToMany(Transaction::class, 'asset_transaction');
+    }
+}
+```
+
+### When to Review Relationships
+- **Creating a new model**: Define all relationships from the start
+- **Editing an existing model**: Verify no relationships are missing
+- **Adding a new feature**: Check if new relationships need to be added to existing models
+- **Code review**: Ensure all related models have bidirectional relationships
+
+### Missing Relationships = Data Integrity Issues
+Incomplete relationships lead to:
+- Inability to query related data efficiently
+- N+1 query problems
+- Broken application functionality
+- Poor code maintainability
+
 ## Laravel 12 Specific
 - No `app/Http/Middleware/` files - use `bootstrap/app.php`
 - No `app/Console/Kernel.php` - commands auto-register
