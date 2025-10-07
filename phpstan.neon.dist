@@ -1,0 +1,30 @@
+includes:
+  - vendor/larastan/larastan/extension.neon
+
+parameters:
+  paths:
+    - app
+
+  tmpDir: storage/framework/cache/phpstan
+
+  level: 8
+
+  phpVersion: 80300
+
+  scanFiles:
+    - vendor/autoload.php
+
+  scanDirectories:
+    - database/factories
+    - database/seeders
+
+  reportUnmatchedIgnoredErrors: true
+
+  excludePaths:
+    - bootstrap/*
+    - storage/*
+    - vendor/*
+
+  parallel:
+    maximumNumberOfProcesses: 4
+    processTimeout: 300.0
