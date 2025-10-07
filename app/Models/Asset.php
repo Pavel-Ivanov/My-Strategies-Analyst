@@ -14,14 +14,6 @@ class Asset extends Model implements HasMedia
 {
     use BelongsToUser, InteractsWithMedia;
 
-    protected static function booted(): void
-    {
-        // Automatically delete all media when the model is deleted
-        static::deleting(function (Asset $asset) {
-            $asset->clearMediaCollection();
-        });
-    }
-
     protected $fillable = [
         'user_id',
         'asset_type',
@@ -38,9 +30,29 @@ class Asset extends Model implements HasMedia
         'is_updatable' => 'boolean',
     ];
 
+    protected static function booted(): void
+    {
+        // Automatically delete all media when the model is deleted
+        static::deleting(function (Asset $asset) {
+            $asset->clearMediaCollection();
+        });
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('asset-icons')
+            ->useDisk('local')
+            ->singleFile();
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function chain(): BelongsTo
+    {
+        return $this->belongsTo(Chain::class);
     }
 
     public function strategies(): BelongsToMany
