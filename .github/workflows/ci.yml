@@ -1,0 +1,115 @@
+name: CI / Quality and Tests
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+  pull_request:
+    branches:
+      - dev
+      - main
+
+permissions:
+  contents: write # Нужен, если вы когда-либо включите 'git-auto-commit-action'
+
+jobs:
+  # === 1. ЗАДАНИЕ: ПРОВЕРКА КАЧЕСТВА КОДА (ЛИНТИНГ) ===
+  quality:
+    runs-on: ubuntu-latest
+    environment: Testing
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2 # Добавлено composer:v2 для единообразия
+
+      # Добавление кеширования Composer для ускорения
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Add Flux Credentials Loaded From ENV
+        run: composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
+
+      - name: Install PHP Dependencies (Lint Only)
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Run Pint (Code Style Check)
+        run: vendor/bin/pint
+
+      # Закомментированная часть, как в вашем оригинале, для справки
+      # - name: Commit Changes
+      #   uses: stefanzweifel/git-auto-commit-action@v5
+      #   with:
+      #     commit_message: fix code style
+      #     commit_options: '--no-verify'
+      #     file_pattern: |
+      #       **/*
+      #       !.github/workflows/*
+
+      # ---
+
+  # === 2. ЗАДАНИЕ: ТЕСТИРОВАНИЕ КОДА ===
+  ci:
+    needs: [quality] # 👈 ЗАВИСИМОСТЬ: Запустится только если 'quality' прошел успешно
+    runs-on: ubuntu-latest
+    environment: Testing
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 1. PHP/Composer Setup (Включая Xdebug)
+      - name: Setup PHP 8.4 (with tools/coverage)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.4
+          tools: composer:v2
+          coverage: xdebug
+
+      # 2. Node Setup (с кешированием npm)
+      - name: Setup Node 22 (with npm cache)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      # 3. Установка Node.js зависимостей
+      - name: Install Node Dependencies
+        run: npm ci # Используйте 'npm ci' в CI/CD для более чистой установки
+
+      # 4. Установка PHP зависимостей (Полная, для тестов)
+      - name: Add Flux Credentials Loaded From ENV
+        run: composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
+
+      # Использование 'npm i' в 'quality' требует, чтобы здесь был 'composer install'
+      - name: Install PHP Dependencies (Full)
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      # 5. Подготовка среды для тестов
+      - name: Copy Environment File
+        run: cp .env.example .env
+
+      - name: Generate Application Key
+        run: php artisan key:generate
+
+      # 6. Сборка фронтенда
+      - name: Build Assets
+        run: npm run build
+
+      # 7. Запуск тестов
+      - name: Run Tests (Pest)
+        run: ./vendor/bin/pest
