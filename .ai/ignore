@@ -1,0 +1,6 @@
+# .ai/ignore
+node_modules/
+vendor/
+storage/
+.git/
+*.log
