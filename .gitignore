@@ -43,6 +43,7 @@ yarn-error.log
 .env.*
 .env.local
 .env.testing
+!/.env.example
 
 # OS/editor files
 .DS_Store
