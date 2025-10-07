@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Traits\BelongsToUser;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
@@ -35,5 +36,10 @@ class Chain extends Model implements HasMedia
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function assets(): HasMany
+    {
+        return $this->hasMany(Asset::class);
     }
 }
