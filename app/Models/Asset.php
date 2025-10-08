@@ -34,7 +34,7 @@ class Asset extends Model implements HasMedia
     {
         // Automatically delete all media when the model is deleted
         static::deleting(function (Asset $asset) {
-            $asset->clearMediaCollection();
+            $asset->clearMediaCollection('asset-icons');
         });
     }
 

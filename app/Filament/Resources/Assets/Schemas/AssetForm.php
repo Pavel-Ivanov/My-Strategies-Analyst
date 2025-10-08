@@ -23,9 +23,13 @@ class AssetForm
                             ->default('coin')
                             ->required(),
                         TextInput::make('name')
-                            ->required(),
+                            ->label('Name')
+                            ->required()
+                            ->maxLength(255),
                         TextInput::make('symbol')
-                            ->required(),
+                            ->label('Symbol')
+                            ->required()
+                            ->maxLength(255),
                     ])
                     ->columns(3)
                     ->columnSpanFull(),
@@ -38,7 +42,9 @@ class AssetForm
                     ])
                     ->columns(2)
                     ->columnSpanFull(),
-                TextInput::make('coingecko_asset_id'),
+                TextInput::make('coingecko_asset_id')
+                    ->label('CoinGecko Asset ID')
+                    ->maxLength(255),
                 SpatieMediaLibraryFileUpload::make('asset-icon')
                     ->collection('asset-icons'),
                 Toggle::make('is_updatable')
