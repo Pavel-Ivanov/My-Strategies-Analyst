@@ -13,18 +13,25 @@ class Resource extends Model implements HasMedia
 {
     use BelongsToUser, InteractsWithMedia;
 
-    protected static function booted(): void
-    {
-        // Automatically delete all media when the model is deleted
-        static::deleting(function (Resource $resource) {
-            $resource->clearMediaCollection();
-        });
-    }
-
     protected $fillable = [
         'user_id',
         'name',
     ];
+
+    protected static function booted(): void
+    {
+        // Automatically delete all media when the model is deleted
+        static::deleting(function (Resource $resource) {
+            $resource->clearMediaCollection('resource-icons');
+        });
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('resource-icons')
+            ->useDisk('local')
+            ->singleFile();
+    }
 
     public function user(): BelongsTo
     {
