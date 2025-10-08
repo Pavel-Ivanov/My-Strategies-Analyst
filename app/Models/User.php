@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Fortify\TwoFactorAuthenticatable;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, TwoFactorAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
@@ -46,6 +47,20 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get the user's initials from their name.
+     */
+    public function initials(): string
+    {
+        $words = explode(' ', trim($this->name));
+
+        if (count($words) >= 2) {
+            return strtoupper(substr($words[0], 0, 1).substr($words[1], 0, 1));
+        }
+
+        return strtoupper(substr($this->name, 0, 2));
     }
 
     protected static function booted(): void
