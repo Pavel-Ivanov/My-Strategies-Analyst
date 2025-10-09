@@ -22,16 +22,25 @@ class ResourceResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    /**
+     * Configure the resource form schema.
+     */
     public static function form(Schema $schema): Schema
     {
         return ResourceForm::configure($schema);
     }
 
+    /**
+     * Configure the resources table.
+     */
     public static function table(Table $table): Table
     {
         return ResourcesTable::configure($table);
     }
 
+    /**
+     * Get the relationships for the resource.
+     */
     public static function getRelations(): array
     {
         return [
@@ -39,6 +48,9 @@ class ResourceResource extends Resource
         ];
     }
 
+    /**
+     * Get the pages available for the resource.
+     */
     public static function getPages(): array
     {
         return [

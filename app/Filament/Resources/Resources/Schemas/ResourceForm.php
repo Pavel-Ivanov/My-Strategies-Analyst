@@ -8,6 +8,9 @@ use Filament\Schemas\Schema;
 
 class ResourceForm
 {
+    /**
+     * Configure the resource form schema.
+     */
     public static function configure(Schema $schema): Schema
     {
         return $schema

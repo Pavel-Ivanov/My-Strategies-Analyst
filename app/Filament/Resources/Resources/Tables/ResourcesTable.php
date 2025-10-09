@@ -9,6 +9,9 @@ use Filament\Tables\Table;
 
 class ResourcesTable
 {
+    /**
+     * Configure the resources table.
+     */
     public static function configure(Table $table): Table
     {
         return $table
