@@ -24,21 +24,33 @@ class AssetResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    /**
+     * Configure the asset form schema.
+     */
     public static function form(Schema $schema): Schema
     {
         return AssetForm::configure($schema);
     }
 
+    /**
+     * Configure the asset infolist schema.
+     */
     public static function infolist(Schema $schema): Schema
     {
         return AssetInfolist::configure($schema);
     }
 
+    /**
+     * Configure the assets table.
+     */
     public static function table(Table $table): Table
     {
         return AssetsTable::configure($table);
     }
 
+    /**
+     * Get the relationships for the resource.
+     */
     public static function getRelations(): array
     {
         return [
@@ -46,6 +58,9 @@ class AssetResource extends Resource
         ];
     }
 
+    /**
+     * Get the pages available for the resource.
+     */
     public static function getPages(): array
     {
         return [

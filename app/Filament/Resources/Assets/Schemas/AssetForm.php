@@ -12,6 +12,9 @@ use Filament\Schemas\Schema;
 
 class AssetForm
 {
+    /**
+     * Configure the asset form schema.
+     */
     public static function configure(Schema $schema): Schema
     {
         return $schema

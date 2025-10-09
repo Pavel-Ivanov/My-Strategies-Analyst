@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\AssetType;
 use App\Models\Traits\BelongsToUser;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -12,7 +13,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Asset extends Model implements HasMedia
 {
-    use BelongsToUser, InteractsWithMedia;
+    use BelongsToUser, HasFactory, InteractsWithMedia;
 
     protected $fillable = [
         'user_id',
@@ -22,7 +23,6 @@ class Asset extends Model implements HasMedia
         'asset_contract_address',
         'coingecko_asset_id',
         'is_updatable',
-        'icon_url',
     ];
 
     protected $casts = [
@@ -30,6 +30,10 @@ class Asset extends Model implements HasMedia
         'is_updatable' => 'boolean',
     ];
 
+    /**
+     * Boot the model.
+     * Automatically deletes all media when the model is deleted.
+     */
     protected static function booted(): void
     {
         // Automatically delete all media when the model is deleted
@@ -38,6 +42,9 @@ class Asset extends Model implements HasMedia
         });
     }
 
+    /**
+     * Register media collections for the asset.
+     */
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('asset-icons')
