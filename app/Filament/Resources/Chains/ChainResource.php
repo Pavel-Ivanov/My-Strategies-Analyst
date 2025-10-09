@@ -22,16 +22,25 @@ class ChainResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'Chain';
 
+    /**
+     * Configure the chain form schema.
+     */
     public static function form(Schema $schema): Schema
     {
         return ChainForm::configure($schema);
     }
 
+    /**
+     * Configure the chains table.
+     */
     public static function table(Table $table): Table
     {
         return ChainsTable::configure($table);
     }
 
+    /**
+     * Get the relationships for the resource.
+     */
     public static function getRelations(): array
     {
         return [
@@ -39,6 +48,9 @@ class ChainResource extends Resource
         ];
     }
 
+    /**
+     * Get the pages available for the resource.
+     */
     public static function getPages(): array
     {
         return [

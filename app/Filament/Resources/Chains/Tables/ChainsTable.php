@@ -11,6 +11,9 @@ use Filament\Tables\Table;
 
 class ChainsTable
 {
+    /**
+     * Configure the chains table.
+     */
     public static function configure(Table $table): Table
     {
         return $table

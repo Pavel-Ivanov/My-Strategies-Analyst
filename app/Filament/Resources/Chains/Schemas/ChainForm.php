@@ -8,6 +8,9 @@ use Filament\Schemas\Schema;
 
 class ChainForm
 {
+    /**
+     * Configure the chain form schema.
+     */
     public static function configure(Schema $schema): Schema
     {
         return $schema
