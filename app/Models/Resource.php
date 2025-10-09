@@ -33,11 +33,17 @@ class Resource extends Model implements HasMedia
             ->singleFile();
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return HasMany<Strategy, $this>
+     */
     public function strategies(): HasMany
     {
         return $this->hasMany(Strategy::class);
