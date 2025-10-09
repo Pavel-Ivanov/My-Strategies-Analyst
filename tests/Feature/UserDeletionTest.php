@@ -15,20 +15,16 @@ it('deletes user with all related data and media files without errors', function
     $user = User::factory()->create();
 
     // Create related models with media
-    $chain = Chain::query()->create([
+    $chain = Chain::factory()->create([
         'user_id' => $user->id,
-        'name' => 'Test Chain',
     ]);
 
-    $asset = Asset::query()->create([
+    $asset = Asset::factory()->create([
         'user_id' => $user->id,
-        'name' => 'Test Asset',
-        'symbol' => 'TST',
     ]);
 
-    $resource = Resource::query()->create([
+    $resource = Resource::factory()->create([
         'user_id' => $user->id,
-        'name' => 'Test Resource',
     ]);
 
     // Add media to chain
@@ -72,9 +68,8 @@ it('handles chain deletion independently without affecting user', function (): v
 
     $user = User::factory()->create();
 
-    $chain = Chain::query()->create([
+    $chain = Chain::factory()->create([
         'user_id' => $user->id,
-        'name' => 'Test Chain',
     ]);
 
     $file = UploadedFile::fake()->image('icon.jpg', 100, 100);
